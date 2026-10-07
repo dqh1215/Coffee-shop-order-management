@@ -12,11 +12,11 @@ import java.math.BigDecimal;
 @Table(name = "menu_items")
 public class MenuItem extends BaseEntity{
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
 
     @Column(name = "category_id")
-    private Long categoryId;
+    private String categoryId;
 
     private String name;
 

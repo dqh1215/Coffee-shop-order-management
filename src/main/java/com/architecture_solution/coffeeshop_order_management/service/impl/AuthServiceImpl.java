@@ -30,8 +30,8 @@ public class AuthServiceImpl implements AuthService {
             throw new AppException(ErrorCode.PASSWORD_MISMATCH);
         }
 
-        if(userRepository.existsByUsername(request.getUsername())){
-            throw new AppException(ErrorCode.USERNAME_ALREADY_EXISTS);
+        if(userRepository.existsByEmail(request.getEmail())){
+            throw new AppException(ErrorCode.EMAIL_ALREADY_EXISTS);
         }
 
         User user = userMapper.toEntity(request);
@@ -41,7 +41,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional(readOnly = true)
     public LoginResponse login(LoginRequest request) {
-        User user = userRepository.findByUsernameAndActiveTrue(request.getUsername())
+        User user = userRepository.findByEmailAndActiveTrue(request.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.INVALID_CREDENTIALS));
 
         if(!request.getPassword().equals(user.getPasswordHash())) {

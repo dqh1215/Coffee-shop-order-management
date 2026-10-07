@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.time.Instant;
 
-public class ErrorResponseUtils {
+public final class ErrorResponseUtils {
     private ErrorResponseUtils() {
     }
 
