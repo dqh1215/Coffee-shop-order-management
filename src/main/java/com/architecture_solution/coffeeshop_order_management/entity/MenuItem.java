@@ -16,7 +16,7 @@ public class MenuItem extends BaseEntity{
     private Long id;
 
     @Column(name = "category_id")
-    private String categoryId;
+    private Long categoryId;
 
     private String name;
 

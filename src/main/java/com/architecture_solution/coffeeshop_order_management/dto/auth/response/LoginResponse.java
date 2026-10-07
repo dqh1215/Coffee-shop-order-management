@@ -1,4 +1,4 @@
-package com.architecture_solution.coffeeshop_order_management.dto.auth.Response;
+package com.architecture_solution.coffeeshop_order_management.dto.auth.response;
 
 import lombok.*;
 

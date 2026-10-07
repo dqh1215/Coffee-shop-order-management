@@ -1,4 +1,4 @@
-package com.architecture_solution.coffeeshop_order_management.dto.auth.Request;
+package com.architecture_solution.coffeeshop_order_management.dto.auth.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;

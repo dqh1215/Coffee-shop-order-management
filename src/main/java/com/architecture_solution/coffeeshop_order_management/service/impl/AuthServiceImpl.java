@@ -1,9 +1,9 @@
 package com.architecture_solution.coffeeshop_order_management.service.impl;
 
-import com.architecture_solution.coffeeshop_order_management.dto.auth.Request.LoginRequest;
-import com.architecture_solution.coffeeshop_order_management.dto.auth.Request.RegisterRequest;
-import com.architecture_solution.coffeeshop_order_management.dto.auth.Response.LoginResponse;
-import com.architecture_solution.coffeeshop_order_management.dto.auth.Response.UserResponse;
+import com.architecture_solution.coffeeshop_order_management.dto.auth.request.LoginRequest;
+import com.architecture_solution.coffeeshop_order_management.dto.auth.request.RegisterRequest;
+import com.architecture_solution.coffeeshop_order_management.dto.auth.response.LoginResponse;
+import com.architecture_solution.coffeeshop_order_management.dto.auth.response.UserResponse;
 import com.architecture_solution.coffeeshop_order_management.entity.User;
 import com.architecture_solution.coffeeshop_order_management.exception.AppException;
 import com.architecture_solution.coffeeshop_order_management.exception.ErrorCode;
@@ -45,7 +45,7 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new AppException(ErrorCode.INVALID_CREDENTIALS));
 
         if(!request.getPassword().equals(user.getPasswordHash())) {
-            throw new AppException(ErrorCode.PASSWORD_MISMATCH);
+            throw new AppException(ErrorCode.INVALID_CREDENTIALS);
         }
 
         return LoginResponse.builder().user(userMapper.toResponse(user)).build();

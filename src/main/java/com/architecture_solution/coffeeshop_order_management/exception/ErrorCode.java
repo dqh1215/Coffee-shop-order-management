@@ -1,7 +1,6 @@
 package com.architecture_solution.coffeeshop_order_management.exception;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.*;
 import org.springframework.http.HttpStatus;
 
 @Getter
