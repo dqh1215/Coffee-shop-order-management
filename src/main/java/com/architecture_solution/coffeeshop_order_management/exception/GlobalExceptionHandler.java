@@ -21,7 +21,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AppException.class)
     public ResponseEntity<ErrorResponse> handleAppException(AppException ex, HttpServletRequest request) {
-        log.error(" {}", request.getRequestURI(), ex);
         return ErrorResponseUtils.toResponseEntity(ex.getErrorCode(), ex.getErrorCode().getMessage(),  request.getRequestURI());
     }
 

@@ -1,5 +1,6 @@
 package com.architecture_solution.coffeeshop_order_management.dto.auth.request;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
@@ -11,7 +12,7 @@ import lombok.*;
 @AllArgsConstructor
 public class LoginRequest {
     @NotBlank
-    @Size(min = 4, max = 50)
+    @Email
     private String email;
 
     @NotBlank
