@@ -11,7 +11,7 @@ import com.architecture_solution.coffeeshop_order_management.repository.UserRepo
 import com.architecture_solution.coffeeshop_order_management.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.password.PasswordEncoder;
+//import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final PasswordEncoder passwordEncoder;
+//    private final PasswordEncoder passwordEncoder;
 
 
     @Override
@@ -34,7 +34,7 @@ public class AuthServiceImpl implements AuthService {
         if(userRepository.existsByEmail(request.getEmail())){
             throw new AppException(ErrorCode.EMAIL_ALREADY_EXISTS);
         }
-        request.setPassword(passwordEncoder.encode(request.getPassword()));
+//        request.setPassword(passwordEncoder.encode(request.getPassword()));
         User user = userMapper.toEntity(request);
         userRepository.save(user);
     }
@@ -45,9 +45,9 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByEmailAndActiveTrue(request.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.INVALID_CREDENTIALS));
 
-        if(!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            throw new AppException(ErrorCode.INVALID_CREDENTIALS);
-        }
+//        if(!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+//            throw new AppException(ErrorCode.INVALID_CREDENTIALS);
+//        }
 
         return LoginResponse.builder().user(userMapper.toResponse(user)).build();
     }
