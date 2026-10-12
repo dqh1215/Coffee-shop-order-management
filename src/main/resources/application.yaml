@@ -1,6 +1,11 @@
 server:
   port: 8080
 
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+
 spring:
   application:
     name: coffeeshop-order-manageme
