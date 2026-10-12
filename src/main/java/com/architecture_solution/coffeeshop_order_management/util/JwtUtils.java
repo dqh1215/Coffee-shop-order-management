@@ -30,8 +30,7 @@ public class JwtUtils {
         Date expiry = new Date(now.getTime() + jwtExpirationMs);
 
         return Jwts.builder()
-                .subject(user.getId())
-                .claim("username", user.getEmail())
+                .subject(user.getEmail())
                 .claim("role", user.getRole().name())
                 .issuedAt(now)
                 .expiration(expiry)
@@ -45,10 +44,6 @@ public class JwtUtils {
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
-    }
-
-    public String extractUsername(Claims claims) {
-        return claims.getSubject();
     }
 
     public Date extractExpiration(Claims claims) {

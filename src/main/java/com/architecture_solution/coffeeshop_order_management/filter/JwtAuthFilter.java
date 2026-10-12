@@ -32,9 +32,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String token = extractToken(request);
         if (token != null && jwtUtils.isValid(token)) {
             Claims claims = jwtUtils.parseClaims(token);
-            String userId = claims.getSubject();
+            String userEmail = claims.getSubject();
 
-            userRepository.findById(userId)
+            userRepository.findByEmail(userEmail)
                     .filter(User::isActive)
                     .ifPresent(user -> {
                         CustomUserDetails userDetails = new CustomUserDetails(user);
