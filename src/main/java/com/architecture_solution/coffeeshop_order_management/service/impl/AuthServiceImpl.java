@@ -42,7 +42,7 @@ public class AuthServiceImpl implements AuthService {
         if(userRepository.existsByEmail(request.getEmail())){
             throw new AppException(ErrorCode.EMAIL_ALREADY_EXISTS);
         }
-        request.setPassword(passwordEncoder.encode(request.getPassword()));
+//        request.setPassword(passwordEncoder.encode(request.getPassword()));
         User user = userMapper.toEntity(request);
         userRepository.save(user);
     }
