@@ -8,10 +8,17 @@ import com.architecture_solution.coffeeshop_order_management.exception.AppExcept
 import com.architecture_solution.coffeeshop_order_management.exception.ErrorCode;
 import com.architecture_solution.coffeeshop_order_management.mapper.UserMapper;
 import com.architecture_solution.coffeeshop_order_management.repository.UserRepository;
+import com.architecture_solution.coffeeshop_order_management.security.CustomUserDetails;
 import com.architecture_solution.coffeeshop_order_management.service.AuthService;
+import com.architecture_solution.coffeeshop_order_management.util.JwtUtils;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-//import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,8 +28,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-//    private final PasswordEncoder passwordEncoder;
-
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtils jwtUtils;
+    private final AuthenticationManager authenticationManager;
 
     @Override
     @Transactional
@@ -42,13 +50,32 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional(readOnly = true)
     public LoginResponse login(LoginRequest request) {
-        User user = userRepository.findByEmailAndActiveTrue(request.getEmail())
-                .orElseThrow(() -> new AppException(ErrorCode.INVALID_CREDENTIALS));
+        try {
+            Authentication authentication =
+                    authenticationManager.authenticate(
+                            new UsernamePasswordAuthenticationToken(
+                                    request.getEmail(),
+                                    request.getPassword()
+                            )
+                    );
 
-//        if(!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-//            throw new AppException(ErrorCode.INVALID_CREDENTIALS);
-//        }
+            CustomUserDetails userDetails =
+                    (CustomUserDetails) authentication.getPrincipal();
 
-        return LoginResponse.builder().user(userMapper.toResponse(user)).build();
+            User user = userDetails.getUser();
+
+            String token = jwtUtils.generateToken(user);
+            Claims claims = jwtUtils.parseClaims(token);
+
+            return LoginResponse.builder()
+                    .accessToken(token)
+                    .email(user.getEmail())
+                    .role(user.getRole())
+                    .expiresAt(jwtUtils.extractExpiration(claims).toInstant())
+                    .build();
+
+        } catch (AuthenticationException ex) {
+            throw new AppException(ErrorCode.INVALID_CREDENTIALS);
+        }
     }
 }
