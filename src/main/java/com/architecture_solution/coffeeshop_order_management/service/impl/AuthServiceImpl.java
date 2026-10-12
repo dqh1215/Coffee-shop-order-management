@@ -9,6 +9,8 @@ import com.architecture_solution.coffeeshop_order_management.exception.ErrorCode
 import com.architecture_solution.coffeeshop_order_management.mapper.UserMapper;
 import com.architecture_solution.coffeeshop_order_management.repository.UserRepository;
 import com.architecture_solution.coffeeshop_order_management.service.AuthService;
+import com.architecture_solution.coffeeshop_order_management.util.JwtUtils;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,7 +24,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
-
+    private final JwtUtils jwtUtils;
 
     @Override
     @Transactional
@@ -49,6 +51,15 @@ public class AuthServiceImpl implements AuthService {
             throw new AppException(ErrorCode.INVALID_CREDENTIALS);
         }
 
-        return LoginResponse.builder().user(userMapper.toResponse(user)).build();
+        String token = jwtUtils.generateToken(user);
+
+        Claims claims = jwtUtils.parseClaims(token);
+
+        return LoginResponse.builder()
+                .accessToken(token)
+                .email(user.getEmail())
+                .role(user.getRole())
+                .expiresAt(jwtUtils.extractExpiration(claims).toInstant())
+                .build();
     }
 }
