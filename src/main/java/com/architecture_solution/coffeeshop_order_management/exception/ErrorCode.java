@@ -7,9 +7,13 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public enum ErrorCode {
     UNCATEGORIZED_EXCEPTION(9999, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR),
+    VALIDATION_FAILED(1000, "Validation failed", HttpStatus.BAD_REQUEST),
     EMAIL_ALREADY_EXISTS(1001, "Email already exists", HttpStatus.CONFLICT),
     INVALID_CREDENTIALS(1002, "Invalid username or password", HttpStatus.UNAUTHORIZED),
-    PASSWORD_MISMATCH(1003, "Passwords do not match", HttpStatus.BAD_REQUEST)
+    PASSWORD_MISMATCH(1003, "Passwords do not match", HttpStatus.BAD_REQUEST),
+    RESOURCE_NOT_FOUND(1004, "Resource not found", HttpStatus.NOT_FOUND),
+    UNAUTHENTICATED(1005, "You need to log in first", HttpStatus.UNAUTHORIZED),
+    ACCESS_DENIED(1006, "You don't have permission for this action", HttpStatus.FORBIDDEN)
     ;
 
     private final int code;
