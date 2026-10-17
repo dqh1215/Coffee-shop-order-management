@@ -13,7 +13,10 @@ public enum ErrorCode {
     PASSWORD_MISMATCH(1003, "Passwords do not match", HttpStatus.BAD_REQUEST),
     RESOURCE_NOT_FOUND(1004, "Resource not found", HttpStatus.NOT_FOUND),
     UNAUTHENTICATED(1005, "You need to log in first", HttpStatus.UNAUTHORIZED),
-    ACCESS_DENIED(1006, "You don't have permission for this action", HttpStatus.FORBIDDEN)
+    ACCESS_DENIED(1006, "You don't have permission for this action", HttpStatus.FORBIDDEN),
+    VOUCHER_ALREADY_EXISTS(1007, "Voucher code already exists", HttpStatus.CONFLICT),
+    VOUCHER_NOT_FOUND(1008, "Voucher not found", HttpStatus.NOT_FOUND),
+    VOUCHER_EXPIRED(1009, "Voucher has expired", HttpStatus.BAD_REQUEST)
     ;
 
     private final int code;
