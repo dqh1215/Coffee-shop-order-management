@@ -30,4 +30,5 @@ public class Voucher extends BaseEntity {
     public boolean isExpired() {
         return expiresAt != null && expiresAt.isBefore(LocalDateTime.now());
     }
+
 }
