@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -35,12 +36,13 @@ public class Order extends BaseEntity {
     private BigDecimal subtotal;
 
     @Column(nullable = false, precision = 10, scale = 2)
+
     @Builder.Default
-    private BigDecimal discountAmount = ZERO;
+    private BigDecimal discountAmount = ZERO.setScale(2, RoundingMode.UNNECESSARY);
 
     @Column(nullable = false, precision = 10, scale = 2)
     @Builder.Default
-    private BigDecimal taxAmount = ZERO;
+    private BigDecimal taxAmount = ZERO.setScale(2, RoundingMode.UNNECESSARY);
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal totalAmount;

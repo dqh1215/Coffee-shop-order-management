@@ -30,6 +30,6 @@ public class OrderController {
         String userId = principal.getUser().getId();
         log.info("order creates from : {}",  userId);
         OrderResponse response = orderService.createOrder(userId, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response, "Order created"));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(response, "Order created"));
     }
 }
