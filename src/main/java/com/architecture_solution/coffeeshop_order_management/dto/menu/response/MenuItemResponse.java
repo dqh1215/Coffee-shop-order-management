@@ -1,4 +1,4 @@
-package com.architecture_solution.coffeeshop_order_management.dto.menu.request;
+package com.architecture_solution.coffeeshop_order_management.dto.menu.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
@@ -17,8 +17,6 @@ public class MenuItemResponse {
     private String categoryId;
 
     private String name;
-
-    private String description;
 
     private BigDecimal price;
 
