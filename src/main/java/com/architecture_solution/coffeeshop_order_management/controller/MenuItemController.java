@@ -8,10 +8,13 @@ import com.architecture_solution.coffeeshop_order_management.service.MenuItemSer
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/menu-items")
@@ -22,16 +25,18 @@ public class MenuItemController {
     private final MenuItemService menuItemService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<PageResponse<MenuItemResponse>>> getAll(
+    public ResponseEntity<ApiResponse<PageResponse<List<MenuItemResponse>>>> getAll(
             @RequestParam(name = "category_id", required = false) String categoryId,
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        var pageable = PageRequest.of(
-                Math.max(page, 0),
-                Math.min(Math.max(size, 1), MAX_PAGE_SIZE),
-                Sort.by("name").ascending());
-        return ResponseEntity.ok(ApiResponse.success(menuItemService.search(categoryId, keyword, pageable)));
+
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
+        Pageable pageable = PageRequest.of(safePage, safeSize, Sort.by("name").ascending());
+
+        return ResponseEntity.ok(ApiResponse.success(
+                menuItemService.search(categoryId, keyword, pageable)));
     }
 
     @GetMapping("/{id}")
@@ -46,9 +51,11 @@ public class MenuItemController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<MenuItemResponse>> update(@PathVariable String id,
-                                                                @Valid @RequestBody MenuItemRequest request) {
-        return ResponseEntity.ok(ApiResponse.success(menuItemService.update(id, request), "Menu item updated successfully"));
+    public ResponseEntity<ApiResponse<MenuItemResponse>> update(
+            @PathVariable String id,
+            @Valid @RequestBody MenuItemRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(
+                menuItemService.update(id, request), "Menu item updated successfully"));
     }
 
     @DeleteMapping("/{id}")
