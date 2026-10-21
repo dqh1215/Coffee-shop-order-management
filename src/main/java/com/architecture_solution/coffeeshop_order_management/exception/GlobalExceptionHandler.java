@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -16,7 +17,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUncaught(Exception ex, HttpServletRequest request) {
         log.error("Unhandled exception at {}", request.getRequestURI(), ex);
-        return ErrorResponseUtils.toResponseEntity(ErrorCode.UNCATEGORIZED_EXCEPTION, ex.getMessage(), request.getRequestURI());
+        return ErrorResponseUtils.toResponseEntity(ErrorCode.UNCATEGORIZED_EXCEPTION, ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage(), request.getRequestURI());
     }
 
     @ExceptionHandler(AppException.class)
@@ -31,5 +32,12 @@ public class GlobalExceptionHandler {
         return ErrorResponseUtils.toResponseEntity(HttpStatus.CONFLICT, "Data conflict", request.getRequestURI());
     }
 
-
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex,
+                                                          HttpServletRequest request) {
+        String message = ex.getBindingResult().getFieldErrors().stream()
+                .map(e -> e.getField() + ": " + e.getDefaultMessage())
+                .collect(java.util.stream.Collectors.joining("; "));
+        return ErrorResponseUtils.toResponseEntity(ErrorCode.VALIDATION_FAILED, message, request.getRequestURI());
+    }
 }
