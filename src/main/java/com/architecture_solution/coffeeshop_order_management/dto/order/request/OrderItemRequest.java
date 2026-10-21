@@ -11,6 +11,6 @@ public class OrderItemRequest {
     private String menuItemId;
 
     @NotNull
-    @Min(1) @Max(50)
+    @Min(1)
     private Integer quantity;
 }
