@@ -5,7 +5,7 @@ app:
   jwt:
     secret: ${JWT_SECRET}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
-  order:
+  pricing:
     tax-rate: 0
 
 spring:

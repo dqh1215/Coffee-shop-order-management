@@ -17,6 +17,7 @@ public enum ErrorCode {
     ORDER_NOT_FOUND(1100, "Order not found", HttpStatus.NOT_FOUND),
     MENU_ITEM_UNAVAILABLE(1101, "Menu item is not available", HttpStatus.BAD_REQUEST),
     INVALID_ORDER_STATUS(1102, "Invalid order status transition", HttpStatus.CONFLICT),
+    MENU_ITEM_NOT_FOUND(1103, "Menu item not found", HttpStatus.NOT_FOUND),
     ;
 
     private final int code;
