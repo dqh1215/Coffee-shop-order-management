@@ -7,6 +7,9 @@ app:
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
   pricing:
     tax-rate: 0
+  admin:
+    email: ${ADMIN_EMAIL}
+    password: ${ADMIN_PASSWORD}
 
 spring:
   application:
