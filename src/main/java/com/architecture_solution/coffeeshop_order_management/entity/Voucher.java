@@ -18,17 +18,16 @@ public class Voucher extends BaseEntity {
     @Column(length = 36)
     private String id;
 
-    @Column(name = "code", nullable = false, unique = true, length = 50)
+    @Column(name = "code", nullable = false, unique = true, length = 30)
     private String code;
 
     @Column(name = "discount_percent", nullable = false)
     private Integer discountPercent;
 
     @Column(name = "expired_at")
-    private LocalDateTime expiresAt;
+    private LocalDateTime expiredAt;
 
     public boolean isExpired() {
-        return expiresAt != null && expiresAt.isBefore(LocalDateTime.now());
+        return expiredAt != null && expiredAt.isBefore(LocalDateTime.now());
     }
-
 }
