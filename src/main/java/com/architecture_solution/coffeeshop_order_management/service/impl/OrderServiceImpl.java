@@ -1,18 +1,26 @@
 package com.architecture_solution.coffeeshop_order_management.service.impl;
 
+import com.architecture_solution.coffeeshop_order_management.dto.common.PageResponse;
+import com.architecture_solution.coffeeshop_order_management.dto.order.request.CancelOrderRequest;
 import com.architecture_solution.coffeeshop_order_management.dto.order.request.CreateOrderRequest;
 import com.architecture_solution.coffeeshop_order_management.dto.order.request.OrderItemRequest;
 import com.architecture_solution.coffeeshop_order_management.dto.order.response.OrderResponse;
+import com.architecture_solution.coffeeshop_order_management.dto.order.response.OrderSummaryResponse;
 import com.architecture_solution.coffeeshop_order_management.entity.MenuItem;
 import com.architecture_solution.coffeeshop_order_management.entity.Order;
 import com.architecture_solution.coffeeshop_order_management.entity.OrderItem;
+import com.architecture_solution.coffeeshop_order_management.enums.OrderStatus;
+import com.architecture_solution.coffeeshop_order_management.enums.RoleName;
 import com.architecture_solution.coffeeshop_order_management.exception.AppException;
 import com.architecture_solution.coffeeshop_order_management.exception.ErrorCode;
 import com.architecture_solution.coffeeshop_order_management.mapper.OrderMapper;
 import com.architecture_solution.coffeeshop_order_management.repository.MenuItemRepository;
 import com.architecture_solution.coffeeshop_order_management.repository.OrderRepository;
+import com.architecture_solution.coffeeshop_order_management.security.CustomUserDetails;
 import com.architecture_solution.coffeeshop_order_management.service.OrderService;
 import com.architecture_solution.coffeeshop_order_management.util.OrderPricing;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,9 +28,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -35,6 +43,17 @@ public class OrderServiceImpl implements OrderService {
     private final OrderMapper orderMapper;
     @Value("${app.pricing.tax-rate:0}")
     private BigDecimal taxRate;
+
+    private boolean isAdmin(CustomUserDetails principal) {
+        return principal.getUser().getRole() == RoleName.ADMIN;
+    }
+
+    private Order findOrderFor(String orderId, CustomUserDetails principal) {
+        Optional<Order> order = isAdmin(principal)
+                ? orderRepository.findWithItemsById(orderId)
+                : orderRepository.findByIdAndUserId(orderId, principal.getUser().getId());
+        return order.orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
+    }
 
     private static OrderItem buildOrderItem(OrderItemRequest line, MenuItem menuItem) {
         if (!menuItem.isActive() || !menuItem.isAvailable()) {
@@ -50,29 +69,31 @@ public class OrderServiceImpl implements OrderService {
         return item;
     }
 
-    @Override
-    @Transactional
-    public OrderResponse createOrder(String userId, CreateOrderRequest request) {
-        List<String> menuItemIds = request.getItems().stream()
-                .map(OrderItemRequest::getMenuItemId)
-                .toList();
-        Map<String, MenuItem> menuItems = menuItemRepository.findAllById(menuItemIds).stream()
+    private Map<String, MenuItem> loadMenuItems(CreateOrderRequest request) {
+        List<String> ids = request.getItems().stream().map(OrderItemRequest::getMenuItemId).toList();
+        return menuItemRepository.findAllById(ids).stream()
                 .collect(Collectors.toMap(MenuItem::getId, Function.identity()));
+    }
 
-        List<OrderItem> items = new ArrayList<>();
-        BigDecimal subtotal = BigDecimal.ZERO;
-        for (OrderItemRequest orderItemRequest : request.getItems()) {
-            MenuItem menuItem = menuItems.get(orderItemRequest.getMenuItemId());
+    private List<OrderItem> buildOrderItems(CreateOrderRequest request, Map<String, MenuItem> menuItems) {
+        return request.getItems().stream().map(line -> {
+            MenuItem menuItem = menuItems.get(line.getMenuItemId());
             if (menuItem == null) {
                 throw new AppException(ErrorCode.MENU_ITEM_NOT_FOUND);
             }
-            OrderItem item = buildOrderItem(orderItemRequest, menuItem);
+            return buildOrderItem(line, menuItem);
+        }).toList();
+    }
 
-            items.add(item);
-            subtotal = subtotal.add(item.getLineTotal());
-        }
+    @Override
+    @Transactional
+    public OrderResponse createOrder(String userId, CreateOrderRequest request) {
+        Map<String, MenuItem> menuItems = loadMenuItems(request);
+        List<OrderItem> items = buildOrderItems(request, menuItems);
 
-        // No voucher support yet, so discountPercent is null.
+        BigDecimal subtotal = items.stream()
+                .map(OrderItem::getLineTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
         OrderPricing.OrderTotals totals = OrderPricing.calculate(subtotal, null, taxRate);
 
         Order order = Order.builder().userId(userId).note(request.getNote())
@@ -81,10 +102,61 @@ public class OrderServiceImpl implements OrderService {
                 .taxAmount(totals.taxAmount())
                 .totalAmount(totals.totalAmount())
                 .build();
-
         items.forEach(order::addItem);
 
-        Order saved = orderRepository.save(order);
-        return orderMapper.toResponse(saved);
+        return orderMapper.toResponse(orderRepository.save(order));
+    }
+
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public OrderResponse getOrder(String orderId, CustomUserDetails principal) {
+        Order order = findOrderFor(orderId, principal);
+        return orderMapper.toResponse(order);
+    }
+
+    @Override
+    @Transactional
+    public PageResponse<List<OrderSummaryResponse>> getMyOrders(String userId, Pageable pageable) {
+        Page<Order> page = orderRepository.findByUserId(userId, pageable);
+
+        List<OrderSummaryResponse> items = page.getContent().stream()
+                .map(orderMapper::toSummary).toList();
+        return PageResponse.<List<OrderSummaryResponse>>builder()
+                .pageNum(page.getNumber())
+                .pageSize(page.getSize())
+                .totalPage(page.getTotalPages())
+                .items(items)
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public OrderResponse cancelOrder(String orderId, CancelOrderRequest request, CustomUserDetails principal) {
+        Order order = findOrderFor(orderId, principal);
+        if (order.getOrderStatus() == OrderStatus.CONFIRMED && !isAdmin(principal)) {
+            throw new AppException(ErrorCode.ACCESS_DENIED);
+        }
+        order.cancel(request.getCancelReason());
+        return orderMapper.toResponse(order);
+    }
+
+    @Override
+    @Transactional
+    public OrderResponse confirmOrder(String orderId) {
+        Order order = orderRepository.findWithItemsById(orderId).
+                orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
+        order.confirm();
+        return orderMapper.toResponse(order);
+    }
+
+    @Override
+    @Transactional
+    public OrderResponse completeOrder(String orderId) {
+        Order order = orderRepository.findWithItemsById(orderId).
+                orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
+        order.complete();
+        return orderMapper.toResponse(order);
     }
 }
