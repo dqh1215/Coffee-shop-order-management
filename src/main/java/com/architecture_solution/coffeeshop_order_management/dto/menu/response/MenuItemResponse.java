@@ -18,6 +18,8 @@ public class MenuItemResponse {
 
     private String name;
 
+    private String description;
+
     private BigDecimal price;
 
     private boolean available;
