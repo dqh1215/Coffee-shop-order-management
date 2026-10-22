@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 @AllArgsConstructor
+// TODO: reorganize code for each error categories
 public enum ErrorCode {
     UNCATEGORIZED_EXCEPTION(9999, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR),
     VALIDATION_FAILED(1000, "Validation failed", HttpStatus.BAD_REQUEST),
@@ -22,8 +23,8 @@ public enum ErrorCode {
     ORDER_NOT_FOUND(1100, "Order not found", HttpStatus.NOT_FOUND),
     MENU_ITEM_UNAVAILABLE(1101, "Menu item is not available", HttpStatus.BAD_REQUEST),
     INVALID_ORDER_STATUS(1102, "Invalid order status transition", HttpStatus.CONFLICT),
-    MENU_ITEM_NOT_FOUND(1103, "Menu item not found", HttpStatus.NOT_FOUND)
-
+    MENU_ITEM_NOT_FOUND(1103, "Menu item not found", HttpStatus.NOT_FOUND),
+    CATEGORY_NOT_FOUND(1104, "Category not found", HttpStatus.NOT_FOUND)
     ;
 
     private final int code;
