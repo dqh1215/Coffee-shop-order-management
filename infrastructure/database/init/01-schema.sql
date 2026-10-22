@@ -24,7 +24,7 @@ CREATE TABLE categories (
 
 CREATE TABLE menu_items (
                             id                CHAR(36)      NOT NULL PRIMARY KEY,
-                            category_id       CHAR(36),
+                            category_id       CHAR(36)      NOT NULL,
                             name              VARCHAR(150)  NOT NULL,
                             description       VARCHAR(500),
                             price             DECIMAL(10,2) NOT NULL,
@@ -34,6 +34,7 @@ CREATE TABLE menu_items (
                             last_modified_at  DATETIME,
                             last_modified_by  VARCHAR(100),
                             is_active         BOOLEAN       NOT NULL DEFAULT TRUE,
+                            INDEX idx_menu_items_category (category_id),
                             CONSTRAINT fk_menu_items_category FOREIGN KEY (category_id) REFERENCES categories(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

@@ -50,13 +50,10 @@ public class MenuItemServiceImpl implements MenuItemService {
     @Transactional
     public MenuItemResponse create(MenuItemRequest request) {
         requireActiveCategory(request.getCategoryId());
-        request.setName(request.getName().trim());
 
+        // toEntity mặc định available = true nếu request không gửi
         MenuItem item = menuItemMapper.toEntity(request);
-        // Nghiệp vụ: không gửi available → mặc định true khi tạo mới
-        if (request.getAvailable() == null) {
-            item.setAvailable(true);
-        }
+        item.setName(item.getName().trim());
         return menuItemMapper.toResponse(menuItemRepository.save(item));
     }
 
@@ -65,11 +62,11 @@ public class MenuItemServiceImpl implements MenuItemService {
     public MenuItemResponse update(String id, MenuItemRequest request) {
         MenuItem item = findActive(id);
         requireActiveCategory(request.getCategoryId());
-        request.setName(request.getName().trim());
 
         // updateEntity dùng NullValuePropertyMappingStrategy.IGNORE
         // → available = null sẽ giữ nguyên giá trị cũ (đúng nghiệp vụ).
         menuItemMapper.updateEntity(request, item);
+        item.setName(item.getName().trim());
         return menuItemMapper.toResponse(item);
     }
 
@@ -84,12 +81,12 @@ public class MenuItemServiceImpl implements MenuItemService {
 
     private MenuItem findActive(String id) {
         return menuItemRepository.findByIdAndActiveTrue(id)
-                .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.MENU_ITEM_NOT_FOUND));
     }
 
     private void requireActiveCategory(String categoryId) {
         if (!categoryRepository.existsByIdAndActiveTrue(categoryId)) {
-            throw new AppException(ErrorCode.RESOURCE_NOT_FOUND);
+            throw new AppException(ErrorCode.CATEGORY_NOT_FOUND);
         }
     }
 }

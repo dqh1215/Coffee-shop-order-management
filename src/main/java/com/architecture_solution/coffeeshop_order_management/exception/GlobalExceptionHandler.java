@@ -26,14 +26,6 @@ public class GlobalExceptionHandler {
                 request.getRequestURI());
     }
 
-    @ExceptionHandler(org.springframework.web.bind.MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationException(org.springframework.web.bind.MethodArgumentNotValidException ex, HttpServletRequest request) {
-        String message = ex.getBindingResult().getFieldError() != null
-                ? ex.getBindingResult().getFieldError().getDefaultMessage()
-                : "Invalid data";
-        return ErrorResponseUtils.toResponseEntity(ErrorCode.VALIDATION_FAILED, message, request.getRequestURI());
-    }
-
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(DataIntegrityViolationException ex,
                                                                       HttpServletRequest request) {
