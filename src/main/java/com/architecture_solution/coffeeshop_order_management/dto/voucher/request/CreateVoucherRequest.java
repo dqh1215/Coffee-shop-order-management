@@ -1,5 +1,6 @@
-package com.architecture_solution.coffeeshop_order_management.dto.voucher;
+package com.architecture_solution.coffeeshop_order_management.dto.voucher.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,15 +13,17 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class CreateVoucherRequest {
     @NotBlank(message = "Code is required")
-    @Size(max = 50, message = "Code must be at most 50 characters")
+    @Size(max = 30, message = "Code must be at most 30 characters")
     @Pattern(regexp = "^[A-Za-z0-9_-]+$", message = "Code only allows letters, digits, '-' and '_'")
     private String code;
 
     @NotNull(message = "Discount percent is required")
     @Min(value = 1, message = "Discount percent must be at least 1")
     @Max(value = 100, message = "Discount percent must be at most 100")
+    @JsonProperty("discount_percent")
     private Integer discountPercent;
 
     @Future(message = "Expiry time must be in the future")
-    private LocalDateTime expiresAt;
+    @JsonProperty("expired_at")
+    private LocalDateTime expiredAt;
 }
