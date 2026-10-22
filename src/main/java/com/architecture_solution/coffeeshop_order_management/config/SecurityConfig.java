@@ -49,7 +49,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/menu-items/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/menu-items/**").hasRole("ADMIN")
                         .requestMatchers("/api/users/me").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/orders/*/confirm").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/orders/*/confirm","/api/orders/*/complete").hasRole("ADMIN")
                         .requestMatchers("/api/orders/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/vouchers").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/vouchers/**").authenticated()
