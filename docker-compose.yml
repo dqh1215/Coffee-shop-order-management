@@ -16,6 +16,19 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+  app:
+    build: .
+    container_name: coffeeshop-app
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+    ports:
+      - "8080:8080"
 
 volumes:
   db_data:
