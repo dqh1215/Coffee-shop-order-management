@@ -14,16 +14,17 @@ class OrderStatusTest {
     }
 
     @Test
-    void confirmed_canOnlyBeCancelled() {
+    void confirmed_canBeCompletedOrCancelled() {
+        assertThat(OrderStatus.CONFIRMED.canTransitionTo(OrderStatus.COMPLETED)).isTrue();
         assertThat(OrderStatus.CONFIRMED.canTransitionTo(OrderStatus.CANCELLED)).isTrue();
         assertThat(OrderStatus.CONFIRMED.canTransitionTo(OrderStatus.PENDING)).isFalse();
         assertThat(OrderStatus.CONFIRMED.canTransitionTo(OrderStatus.CONFIRMED)).isFalse();
     }
 
     @Test
-    void cancelled_isFinal() {
+    void completed_isFinal() {
         for (OrderStatus next : OrderStatus.values()) {
-            assertThat(OrderStatus.CANCELLED.canTransitionTo(next)).isFalse();
+            assertThat(OrderStatus.COMPLETED.canTransitionTo(next)).isFalse();
         }
     }
 }

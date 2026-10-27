@@ -68,26 +68,4 @@ public class OrderController {
         OrderResponse response = orderService.cancelOrder(id, request, principal);
         return ResponseEntity.ok(ApiResponse.success(response,"Order " + id + " cancelled"));
     }
-
-    @PostMapping("/{id}/confirm")
-    public ResponseEntity<ApiResponse<OrderResponse>> confirmOrder(
-            @PathVariable String id) {
-
-        log.info("Confirming order: {}", id);
-
-        OrderResponse response = orderService.confirmOrder(id);
-
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
-
-    @PostMapping("/{id}/complete")
-    public ResponseEntity<ApiResponse<OrderResponse>> completeOrder(
-            @PathVariable String id) {
-
-        log.info("Completing order: {}", id);
-
-        OrderResponse response = orderService.completeOrder(id);
-
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
 }

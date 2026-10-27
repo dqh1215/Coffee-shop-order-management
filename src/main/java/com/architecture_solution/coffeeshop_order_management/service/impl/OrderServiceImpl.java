@@ -17,6 +17,7 @@ import com.architecture_solution.coffeeshop_order_management.exception.ErrorCode
 import com.architecture_solution.coffeeshop_order_management.mapper.OrderMapper;
 import com.architecture_solution.coffeeshop_order_management.repository.MenuItemRepository;
 import com.architecture_solution.coffeeshop_order_management.repository.OrderRepository;
+import com.architecture_solution.coffeeshop_order_management.repository.OrderSpecifications;
 import com.architecture_solution.coffeeshop_order_management.security.CustomUserDetails;
 import com.architecture_solution.coffeeshop_order_management.service.OrderService;
 import com.architecture_solution.coffeeshop_order_management.service.VoucherService;
@@ -30,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -43,9 +45,10 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final MenuItemRepository menuItemRepository;
     private final OrderMapper orderMapper;
+    private final VoucherService voucherService;
     @Value("${app.pricing.tax-rate:0}")
     private BigDecimal taxRate;
-    private final VoucherService voucherService;
+
 
     private boolean isAdmin(CustomUserDetails principal) {
         return principal.getUser().getRole() == RoleName.ADMIN;
@@ -88,6 +91,8 @@ public class OrderServiceImpl implements OrderService {
         }).toList();
     }
 
+    @Override
+    @Transactional
     public OrderResponse createOrder(String userId, CreateOrderRequest request) {
         Map<String, MenuItem> menuItems = loadMenuItems(request);
         List<OrderItem> items = buildOrderItems(request, menuItems);
@@ -124,17 +129,25 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public PageResponse<List<OrderSummaryResponse>> getMyOrders(String userId, Pageable pageable) {
-        Page<Order> page = orderRepository.findByUserId(userId, pageable);
+        return toPageResponse(orderRepository.findByUserId(userId, pageable));
+    }
 
-        List<OrderSummaryResponse> items = page.getContent().stream()
-                .map(orderMapper::toSummary).toList();
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<List<OrderSummaryResponse>> getOrders(OrderStatus status, String userId,
+                                                              LocalDate from, LocalDate to, Pageable pageable) {
+        return toPageResponse(orderRepository.findAll(
+                OrderSpecifications.search(status, userId, from, to), pageable));
+    }
+
+    private PageResponse<List<OrderSummaryResponse>> toPageResponse(Page<Order> page) {
         return PageResponse.<List<OrderSummaryResponse>>builder()
                 .pageNum(page.getNumber())
                 .pageSize(page.getSize())
                 .totalPage(page.getTotalPages())
-                .items(items)
+                .items(page.getContent().stream().map(orderMapper::toSummary).toList())
                 .build();
     }
 

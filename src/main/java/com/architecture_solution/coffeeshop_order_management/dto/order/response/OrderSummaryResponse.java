@@ -15,7 +15,8 @@ import java.time.LocalDateTime;
 public class OrderSummaryResponse {
     private String id;
     private OrderStatus status;
-
+    @JsonProperty("user_id")
+    private String userId;
     @JsonProperty("total_amount")
     private BigDecimal totalAmount;
 
