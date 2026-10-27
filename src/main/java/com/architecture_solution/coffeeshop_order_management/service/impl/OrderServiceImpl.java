@@ -9,6 +9,7 @@ import com.architecture_solution.coffeeshop_order_management.dto.order.response.
 import com.architecture_solution.coffeeshop_order_management.entity.MenuItem;
 import com.architecture_solution.coffeeshop_order_management.entity.Order;
 import com.architecture_solution.coffeeshop_order_management.entity.OrderItem;
+import com.architecture_solution.coffeeshop_order_management.entity.Voucher;
 import com.architecture_solution.coffeeshop_order_management.enums.OrderStatus;
 import com.architecture_solution.coffeeshop_order_management.enums.RoleName;
 import com.architecture_solution.coffeeshop_order_management.exception.AppException;
@@ -18,6 +19,7 @@ import com.architecture_solution.coffeeshop_order_management.repository.MenuItem
 import com.architecture_solution.coffeeshop_order_management.repository.OrderRepository;
 import com.architecture_solution.coffeeshop_order_management.security.CustomUserDetails;
 import com.architecture_solution.coffeeshop_order_management.service.OrderService;
+import com.architecture_solution.coffeeshop_order_management.service.VoucherService;
 import com.architecture_solution.coffeeshop_order_management.util.OrderPricing;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -43,6 +45,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderMapper orderMapper;
     @Value("${app.pricing.tax-rate:0}")
     private BigDecimal taxRate;
+    private final VoucherService voucherService;
 
     private boolean isAdmin(CustomUserDetails principal) {
         return principal.getUser().getRole() == RoleName.ADMIN;
@@ -85,8 +88,6 @@ public class OrderServiceImpl implements OrderService {
         }).toList();
     }
 
-    @Override
-    @Transactional
     public OrderResponse createOrder(String userId, CreateOrderRequest request) {
         Map<String, MenuItem> menuItems = loadMenuItems(request);
         List<OrderItem> items = buildOrderItems(request, menuItems);
@@ -94,9 +95,15 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal subtotal = items.stream()
                 .map(OrderItem::getLineTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        OrderPricing.OrderTotals totals = OrderPricing.calculate(subtotal, null, taxRate);
+
+        Voucher voucher = (request.getVoucherCode() == null || request.getVoucherCode().isBlank())
+                ? null
+                : voucherService.getValidVoucher(request.getVoucherCode());
+        Integer discountPercent = voucher == null ? null : voucher.getDiscountPercent();
+        OrderPricing.OrderTotals totals = OrderPricing.calculate(subtotal, discountPercent, taxRate);
 
         Order order = Order.builder().userId(userId).note(request.getNote())
+                .voucherId(voucher == null ? null : voucher.getId())
                 .subtotal(totals.subtotal())
                 .discountAmount(totals.discountAmount())
                 .taxAmount(totals.taxAmount())

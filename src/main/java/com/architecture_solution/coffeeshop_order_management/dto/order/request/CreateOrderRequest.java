@@ -1,6 +1,7 @@
 package com.architecture_solution.coffeeshop_order_management.dto.order.request;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotEmpty;
@@ -22,6 +23,10 @@ public class CreateOrderRequest {
 
     @Size(max = 255)
     private String note;
+
+    @Size(max = 30)
+    @JsonProperty("voucher_code")
+    private String voucherCode;
 
     @AssertTrue(message = "menu_item_id must be unique")
     @JsonIgnore
