@@ -1,5 +1,6 @@
 package com.architecture_solution.coffeeshop_order_management.mapper;
 
+import com.architecture_solution.coffeeshop_order_management.dto.order.response.BillResponse;
 import com.architecture_solution.coffeeshop_order_management.dto.order.response.OrderItemResponse;
 import com.architecture_solution.coffeeshop_order_management.dto.order.response.OrderResponse;
 import com.architecture_solution.coffeeshop_order_management.dto.order.response.OrderSummaryResponse;
@@ -16,6 +17,10 @@ public interface OrderMapper {
 
     @Mapping(source = "orderStatus", target = "status")
     OrderSummaryResponse toSummary(Order order);
+
+    @Mapping(source = "id", target = "orderId")
+    @Mapping(source = "orderStatus", target = "status")
+    BillResponse toBill(Order order);
 
     OrderItemResponse toItemResponse(OrderItem item);
 }

@@ -90,8 +90,4 @@ public class Order extends BaseEntity {
     public void confirm() {
         changeStatus(OrderStatus.CONFIRMED);
     }
-
-    public void complete() {
-        changeStatus(OrderStatus.COMPLETED);
-    }
 }
