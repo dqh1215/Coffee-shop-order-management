@@ -156,7 +156,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public OrderResponse cancelOrder(String orderId, CancelOrderRequest request, String userId, boolean admin) {
         Order order = findOrderFor(orderId, userId, admin);
-        order.cancel(request.getCancelReason());
+        order.cancel(request == null ? null : request.getCancelReason());
         return orderMapper.toResponse(order);
     }
 

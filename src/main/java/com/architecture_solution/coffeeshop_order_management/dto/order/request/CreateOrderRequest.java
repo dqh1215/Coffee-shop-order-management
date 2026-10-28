@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
@@ -19,7 +20,7 @@ import java.util.Objects;
 public class CreateOrderRequest {
     @NotEmpty
     @Valid
-    private List<OrderItemRequest> items;
+    private List<@NotNull OrderItemRequest> items;
 
     @Size(max = 255)
     private String note;

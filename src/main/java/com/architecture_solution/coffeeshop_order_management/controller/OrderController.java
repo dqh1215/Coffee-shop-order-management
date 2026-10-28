@@ -80,11 +80,11 @@ public class OrderController {
     @PostMapping("/{id}/cancel")
     public ResponseEntity<ApiResponse<OrderResponse>> cancelOrder(
             @PathVariable String id,
-            @Valid @RequestBody CancelOrderRequest request,
+            @Valid @RequestBody(required = false) CancelOrderRequest request,
             @AuthenticationPrincipal CustomUserDetails principal) {
-        log.info("order cancelled : {}",  id);
         OrderResponse response = orderService.cancelOrder(id, request,
                 principal.getUser().getId(), principal.isAdmin());
+        log.info("order cancelled : {}",  id);
         return ResponseEntity.ok(ApiResponse.success(response,"Order " + id + " cancelled"));
     }
 
