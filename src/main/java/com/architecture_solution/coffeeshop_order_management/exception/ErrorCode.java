@@ -19,6 +19,7 @@ public enum ErrorCode {
     VOUCHER_ALREADY_EXISTS(1007, "Voucher code already exists", HttpStatus.CONFLICT),
     VOUCHER_NOT_FOUND(1008, "Voucher not found", HttpStatus.NOT_FOUND),
     VOUCHER_EXPIRED(1009, "Voucher has expired", HttpStatus.BAD_REQUEST),
+    USER_NOT_FOUND(1010, "User not found", HttpStatus.NOT_FOUND),
 
     ORDER_NOT_FOUND(1100, "Order not found", HttpStatus.NOT_FOUND),
     MENU_ITEM_UNAVAILABLE(1101, "Menu item is not available", HttpStatus.BAD_REQUEST),

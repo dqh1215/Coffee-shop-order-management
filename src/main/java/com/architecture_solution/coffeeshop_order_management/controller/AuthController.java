@@ -27,7 +27,7 @@ public class AuthController {
     ResponseEntity<ApiResponse<String>> register(@Valid @RequestBody RegisterRequest request) {
         log.info("registering user: {}", request.getEmail());
         authService.register(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(null, "User registered successfully"));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(null, "User registered successfully"));
     }
 
     @PostMapping("/login")
