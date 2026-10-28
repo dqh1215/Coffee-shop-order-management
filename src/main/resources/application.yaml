@@ -15,7 +15,7 @@ spring:
   application:
     name: coffeeshop-order-manageme
   datasource:
-    url: jdbc:mysql://localhost:${DB_PORT}/${MYSQL_DATABASE}
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT}/${MYSQL_DATABASE}    
     username: ${MYSQL_USERNAME}
     password: ${MYSQL_ROOT_PASSWORD}
 
