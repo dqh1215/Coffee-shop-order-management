@@ -13,7 +13,7 @@ app:
 
 spring:
   application:
-    name: coffeeshop-order-manageme
+    name: coffeeshop-order-management
   datasource:
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT}/${MYSQL_DATABASE}    
     username: ${MYSQL_USERNAME}
@@ -22,7 +22,3 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
