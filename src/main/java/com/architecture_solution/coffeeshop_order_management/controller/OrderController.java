@@ -4,6 +4,7 @@ import com.architecture_solution.coffeeshop_order_management.dto.common.ApiRespo
 import com.architecture_solution.coffeeshop_order_management.dto.common.PageResponse;
 import com.architecture_solution.coffeeshop_order_management.dto.order.request.CancelOrderRequest;
 import com.architecture_solution.coffeeshop_order_management.dto.order.request.CreateOrderRequest;
+import com.architecture_solution.coffeeshop_order_management.dto.order.response.BillResponse;
 import com.architecture_solution.coffeeshop_order_management.dto.order.response.OrderResponse;
 import com.architecture_solution.coffeeshop_order_management.dto.order.response.OrderSummaryResponse;
 import com.architecture_solution.coffeeshop_order_management.security.CustomUserDetails;
@@ -42,7 +43,16 @@ public class OrderController {
     public ResponseEntity<ApiResponse<OrderResponse>> getOrder(
             @PathVariable String id,
             @AuthenticationPrincipal CustomUserDetails principal) {
-        return ResponseEntity.ok(ApiResponse.success(orderService.getOrder(id, principal)));
+        return ResponseEntity.ok(ApiResponse.success(
+                orderService.getOrder(id, principal.getUser().getId(), principal.isAdmin())));
+    }
+
+    @GetMapping("/{id}/bill")
+    public ResponseEntity<ApiResponse<BillResponse>> getBill(
+            @PathVariable String id,
+            @AuthenticationPrincipal CustomUserDetails principal) {
+        return ResponseEntity.ok(ApiResponse.success(
+                orderService.getBill(id, principal.getUser().getId(), principal.isAdmin())));
     }
 
     @GetMapping
@@ -65,7 +75,8 @@ public class OrderController {
             @Valid @RequestBody CancelOrderRequest request,
             @AuthenticationPrincipal CustomUserDetails principal) {
         log.info("order cancelled : {}",  id);
-        OrderResponse response = orderService.cancelOrder(id, request, principal);
+        OrderResponse response = orderService.cancelOrder(id, request,
+                principal.getUser().getId(), principal.isAdmin());
         return ResponseEntity.ok(ApiResponse.success(response,"Order " + id + " cancelled"));
     }
 }
