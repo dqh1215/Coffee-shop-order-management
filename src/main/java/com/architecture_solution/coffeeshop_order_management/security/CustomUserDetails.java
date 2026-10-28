@@ -1,6 +1,7 @@
 package com.architecture_solution.coffeeshop_order_management.security;
 
 import com.architecture_solution.coffeeshop_order_management.entity.User;
+import com.architecture_solution.coffeeshop_order_management.enums.RoleName;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
@@ -15,6 +16,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CustomUserDetails implements UserDetails {
     private final User user;
+
+    public boolean isAdmin() {
+        return user.getRole() == RoleName.ADMIN;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

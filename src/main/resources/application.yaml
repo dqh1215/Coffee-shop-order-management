@@ -6,23 +6,19 @@ app:
     secret: ${JWT_SECRET}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
   pricing:
-    tax-rate: 0
+    tax-rate: ${TAX_RATE:0}
   admin:
     email: ${ADMIN_EMAIL}
     password: ${ADMIN_PASSWORD}
 
 spring:
   application:
-    name: coffeeshop-order-manageme
+    name: coffeeshop-order-management
   datasource:
-    url: jdbc:mysql://localhost:${DB_PORT}/${MYSQL_DATABASE}
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT}/${MYSQL_DATABASE}    
     username: ${MYSQL_USERNAME}
     password: ${MYSQL_ROOT_PASSWORD}
 
   jpa:
     hibernate:
       ddl-auto: none
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
