@@ -4,6 +4,7 @@ import com.architecture_solution.coffeeshop_order_management.dto.common.PageResp
 import com.architecture_solution.coffeeshop_order_management.dto.order.request.CancelOrderRequest;
 import com.architecture_solution.coffeeshop_order_management.dto.order.request.CreateOrderRequest;
 import com.architecture_solution.coffeeshop_order_management.dto.order.request.OrderItemRequest;
+import com.architecture_solution.coffeeshop_order_management.dto.order.response.BillResponse;
 import com.architecture_solution.coffeeshop_order_management.dto.order.response.OrderResponse;
 import com.architecture_solution.coffeeshop_order_management.dto.order.response.OrderSummaryResponse;
 import com.architecture_solution.coffeeshop_order_management.entity.MenuItem;
@@ -11,14 +12,12 @@ import com.architecture_solution.coffeeshop_order_management.entity.Order;
 import com.architecture_solution.coffeeshop_order_management.entity.OrderItem;
 import com.architecture_solution.coffeeshop_order_management.entity.Voucher;
 import com.architecture_solution.coffeeshop_order_management.enums.OrderStatus;
-import com.architecture_solution.coffeeshop_order_management.enums.RoleName;
 import com.architecture_solution.coffeeshop_order_management.exception.AppException;
 import com.architecture_solution.coffeeshop_order_management.exception.ErrorCode;
 import com.architecture_solution.coffeeshop_order_management.mapper.OrderMapper;
 import com.architecture_solution.coffeeshop_order_management.repository.MenuItemRepository;
 import com.architecture_solution.coffeeshop_order_management.repository.OrderRepository;
 import com.architecture_solution.coffeeshop_order_management.repository.OrderSpecifications;
-import com.architecture_solution.coffeeshop_order_management.security.CustomUserDetails;
 import com.architecture_solution.coffeeshop_order_management.service.OrderService;
 import com.architecture_solution.coffeeshop_order_management.service.VoucherService;
 import com.architecture_solution.coffeeshop_order_management.util.OrderPricing;
@@ -50,14 +49,10 @@ public class OrderServiceImpl implements OrderService {
     private BigDecimal taxRate;
 
 
-    private boolean isAdmin(CustomUserDetails principal) {
-        return principal.getUser().getRole() == RoleName.ADMIN;
-    }
-
-    private Order findOrderFor(String orderId, CustomUserDetails principal) {
-        Optional<Order> order = isAdmin(principal)
+    private Order findOrderFor(String orderId, String userId, boolean admin) {
+        Optional<Order> order = admin
                 ? orderRepository.findWithItemsById(orderId)
-                : orderRepository.findByIdAndUserId(orderId, principal.getUser().getId());
+                : orderRepository.findByIdAndUserId(orderId, userId);
         return order.orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
     }
 
@@ -123,9 +118,16 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
-    public OrderResponse getOrder(String orderId, CustomUserDetails principal) {
-        Order order = findOrderFor(orderId, principal);
+    public OrderResponse getOrder(String orderId, String userId, boolean admin) {
+        Order order = findOrderFor(orderId, userId, admin);
         return orderMapper.toResponse(order);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public BillResponse getBill(String orderId, String userId, boolean admin) {
+        Order order = findOrderFor(orderId, userId, admin);
+        return orderMapper.toBill(order);
     }
 
     @Override
@@ -153,9 +155,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public OrderResponse cancelOrder(String orderId, CancelOrderRequest request, CustomUserDetails principal) {
-        Order order = findOrderFor(orderId, principal);
-        if (order.getOrderStatus() == OrderStatus.CONFIRMED && !isAdmin(principal)) {
+    public OrderResponse cancelOrder(String orderId, CancelOrderRequest request, String userId, boolean admin) {
+        Order order = findOrderFor(orderId, userId, admin);
+        if (order.getOrderStatus() == OrderStatus.CONFIRMED && !admin) {
             throw new AppException(ErrorCode.ACCESS_DENIED);
         }
         order.cancel(request.getCancelReason());
