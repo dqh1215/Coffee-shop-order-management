@@ -17,11 +17,11 @@ public interface OrderService {
     OrderResponse getOrder(String orderId, String userId, boolean admin);
     BillResponse getBill(String orderId, String userId, boolean admin);
 
-    PageResponse<List<OrderSummaryResponse>> getMyOrders(String userId, Pageable pageable);
-    PageResponse<List<OrderSummaryResponse>> getOrders(OrderStatus status, String userId,
-                                                       LocalDate from, LocalDate to, Pageable pageable);
+    // Customers only see their own orders; userIdFilter is honoured for ADMIN only.
+    PageResponse<List<OrderSummaryResponse>> getOrders(String userId, boolean admin, OrderStatus status,
+                                                       String userIdFilter, LocalDate from, LocalDate to,
+                                                       Pageable pageable);
 
     OrderResponse cancelOrder(String orderId, CancelOrderRequest request, String userId, boolean admin);
     OrderResponse confirmOrder(String orderId);
-    OrderResponse completeOrder(String orderId);
 }

@@ -132,16 +132,15 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
-    public PageResponse<List<OrderSummaryResponse>> getMyOrders(String userId, Pageable pageable) {
-        return toPageResponse(orderRepository.findByUserId(userId, pageable));
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public PageResponse<List<OrderSummaryResponse>> getOrders(OrderStatus status, String userId,
-                                                              LocalDate from, LocalDate to, Pageable pageable) {
+    public PageResponse<List<OrderSummaryResponse>> getOrders(String userId, boolean admin, OrderStatus status,
+                                                              String userIdFilter, LocalDate from, LocalDate to,
+                                                              Pageable pageable) {
+        if (from != null && to != null && from.isAfter(to)) {
+            throw new AppException(ErrorCode.VALIDATION_FAILED);
+        }
+        String ownerId = admin ? userIdFilter : userId;
         return toPageResponse(orderRepository.findAll(
-                OrderSpecifications.search(status, userId, from, to), pageable));
+                OrderSpecifications.search(status, ownerId, from, to), pageable));
     }
 
     private PageResponse<List<OrderSummaryResponse>> toPageResponse(Page<Order> page) {
@@ -157,9 +156,6 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public OrderResponse cancelOrder(String orderId, CancelOrderRequest request, String userId, boolean admin) {
         Order order = findOrderFor(orderId, userId, admin);
-        if (order.getOrderStatus() == OrderStatus.CONFIRMED && !admin) {
-            throw new AppException(ErrorCode.ACCESS_DENIED);
-        }
         order.cancel(request.getCancelReason());
         return orderMapper.toResponse(order);
     }
@@ -170,15 +166,6 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findWithItemsById(orderId).
                 orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
         order.confirm();
-        return orderMapper.toResponse(order);
-    }
-
-    @Override
-    @Transactional
-    public OrderResponse completeOrder(String orderId) {
-        Order order = orderRepository.findWithItemsById(orderId).
-                orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
-        order.complete();
         return orderMapper.toResponse(order);
     }
 }
