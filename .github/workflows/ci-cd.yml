@@ -1,6 +1,6 @@
 name: CI/CD
 
-# Pull requests into dev/main run tests and build the image; merging into main also publishes it.
+# PR into dev: tests only. PR into main: tests + image build. Merge into main: tests + build + publish.
 # Pushes to dev are not built separately, since the pull request already tests the same code.
 on:
   push:
@@ -61,6 +61,7 @@ jobs:
     name: Build and push Docker image
     runs-on: ubuntu-latest
     needs: test
+    if: github.event_name == 'push' || github.base_ref == 'main'
     permissions:
       contents: read
       packages: write

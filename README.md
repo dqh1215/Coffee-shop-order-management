@@ -182,12 +182,16 @@ App và MySQL được ghim vào các nhân CPU riêng, Locust chạy ở nhân 
 
 ### 6.6. CI/CD với GitHub Actions
 
-Workflow [`ci-cd.yml`](.github/workflows/ci-cd.yml) chạy khi mở hoặc cập nhật pull request vào `dev`/`main`, và khi có code mới trên `main` (merge PR):
+Workflow [`ci-cd.yml`](.github/workflows/ci-cd.yml) gồm 2 job, chạy tùy theo nhánh đích:
 
-| Job | Các bước |
-| --- | --- |
-| `Build and test` | Khởi động MySQL 8.4 (service container), nạp `01-schema.sql`, cài JDK 25, sinh JWT secret tạm, chạy `./mvnw verify` (unit test + test khởi động Spring) |
-| `Build and push Docker image` | Chạy sau khi test qua; build image từ `Dockerfile`. Với pull request chỉ build để kiểm tra; khi có code mới trên `main` thì đẩy image lên GitHub Container Registry (mục **Packages** của repo) |
+| Sự kiện | `Build and test` | `Build and push Docker image` |
+| --- | --- | --- |
+| Pull request vào `dev` | ✅ | Bỏ qua |
+| Pull request vào `main` | ✅ | ✅ chỉ build để kiểm tra, không push |
+| Merge vào `main` | ✅ | ✅ build và đẩy image lên GitHub Container Registry (mục **Packages**) |
+
+- `Build and test`: khởi động MySQL 8.4 (service container), nạp `01-schema.sql`, cài JDK 25, sinh JWT secret tạm, chạy `./mvnw verify` (unit test + test khởi động Spring).
+- `Build and push Docker image`: chỉ chạy khi test đã qua; build image từ `Dockerfile`.
 
 Mỗi lần publish có 2 tag: `main` (luôn là bản mới nhất) và commit SHA (để quay lại đúng một phiên bản). Chạy image đã publish thay cho bước build:
 
@@ -195,7 +199,7 @@ Mỗi lần publish có 2 tag: `main` (luôn là bản mới nhất) và commit 
 docker pull ghcr.io/dqh1215/coffee-shop-order-management:main
 ```
 
-Pull request chỉ nên merge khi cả 2 job đều xanh. Kết quả xem ở tab **Actions** trên GitHub.
+Branch protection trên GitHub bắt buộc PR vào `dev` phải qua `Build and test`, PR vào `main` phải qua cả 2 job mới được merge. Kết quả xem ở tab **Actions** trên GitHub.
 
 ## 7. Kiểm thử tải
 
