@@ -1,6 +1,7 @@
 package com.architecture_solution.coffeeshop_order_management.dto.common;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,9 +13,13 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ApiResponse<T> {
+    @Schema(example = "200")
     @JsonProperty("status_code")
     private Integer statusCode;
+
+    @Schema(example = "OK")
     private String message;
+
     private T data;
 
     public static <T> ApiResponse<T> success(T data) {
