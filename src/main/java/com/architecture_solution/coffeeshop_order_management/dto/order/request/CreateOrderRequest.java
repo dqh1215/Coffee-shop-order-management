@@ -2,6 +2,7 @@ package com.architecture_solution.coffeeshop_order_management.dto.order.request;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotEmpty;
@@ -22,9 +23,11 @@ public class CreateOrderRequest {
     @Valid
     private List<@NotNull OrderItemRequest> items;
 
+    @Schema(example = "Less ice")
     @Size(max = 255)
     private String note;
 
+    @Schema(example = "WELCOME10")
     @Size(max = 30)
     @JsonProperty("voucher_code")
     private String voucherCode;
