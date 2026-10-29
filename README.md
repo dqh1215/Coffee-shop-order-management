@@ -318,16 +318,17 @@ total    = subtotal − discount + tax
 Planned: load test on a Kaggle CPU instance. Tool, scenario and results will be added here.
 
 ## Phase 2 suggestions
- 
-Phase 1 stops at correct business rules, consistent data and basic security. Directions for Phase 2 (all measured before and after on the same Kaggle CPU configuration):
- 
-| Direction | Suggestion |
-| --- | --- |
-| Concurrency | Verify race conditions with load tests: confirm and cancel the same order at the same time, many orders using one voucher, parallel logins. Add optimistic locking (`@Version`) on `orders`; consider a queue or distributed lock when running several instances |
-| Performance | Measure before optimizing: indexes for `orders(user_id, created_at)` and `orders(status, created_at)`, keyword search (`LIKE '%kw%'` cannot use an index), HikariCP pool size, virtual threads, cache for menu and categories, and removing the per-request user query in `JwtAuthFilter` |
-| Architecture | Keep a modular monolith; split into services (identity, menu, order) only if load test numbers show it is needed. Scale out with several app instances behind Nginx (JWT is already stateless) and Redis as a shared cache |
-| Source code | Apply State (order status) and Factory (order creation: validate items, snapshot prices, apply voucher, compute totals); split voucher rules into separate validator objects as rules grow |
-| API protection | Rate limiting and DoS protection, especially for `POST /api/auth/login` (BCrypt is CPU-heavy) and `POST /api/auth/register` |
-| Security | HTTPS in real deployment; shorter access token plus refresh token so access can be revoked; `AuditorAwareImpl` should record the real user instead of `SYSTEM` |
-| Observability | Spring Boot Actuator + Prometheus metrics, MySQL slow query log, to explain where latency comes from |
-| Migration | Replace the one-time `01-schema.sql` init script with versioned migrations (Flyway) so the schema can be upgraded without dropping the volume |
+
+Phase 1 stops at correct business rules, consistent data and basic security. Phase 2 focuses on architecture and performance. Every change is measured before and after on the same Kaggle CPU configuration (throughput, p95 latency), with Spring Boot Actuator + Prometheus metrics and the MySQL slow query log showing where time is spent.
+
+| Direction            | Current state                                                                                                   | Suggestion                                                                                                                   |
+|----------------------|-----------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------|
+| Auth overhead        | `JwtAuthFilter` loads the user from MySQL on every authenticated request                                        | Trust the token claims, or cache the user for a short TTL                                                                    |
+| Read caching         | Menu items and categories are read the most but hit the database every time                                    | Cache menu and categories; evict on admin create/update/delete                                                               |
+| Indexes              | `orders` only has foreign-key indexes; lists filter by `user_id`/`status` and sort by `created_at`; keyword search uses `LIKE '%kw%'` | Composite indexes `orders(user_id, created_at)` and `orders(status, created_at)`; full-text index for menu item names        |
+| Scale out            | One app instance and one MySQL: single point of failure                                                         | Several app instances behind Nginx (JWT is already stateless), Redis as a shared cache, MySQL read replica for read-heavy queries |
+| Concurrency          | No version column on `orders`; with several instances, confirm and cancel on the same order can overwrite each other | Optimistic locking (`@Version`) on `orders`                                                                                  |
+| Modular monolith     | `OrderService` calls `MenuItemRepository` directly                                                              | Split into `identity`, `menu`, `order` modules that talk only through interfaces; extract a service only if load tests show it is needed |
+| Design patterns      | Status rules in `OrderStatus`, creation logic inside `OrderServiceImpl`                                         | State pattern for order status, Factory for order creation; existing unit tests protect behavior during the refactor          |
+
+Priority: tune a single instance first (auth overhead, caching, indexes, write path), scale out only when one tuned instance is not enough, and do the modular refactor in parallel since it does not change behavior.
