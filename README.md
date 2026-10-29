@@ -316,3 +316,18 @@ total    = subtotal − discount + tax
 ## Load test
 
 Planned: load test on a Kaggle CPU instance. Tool, scenario and results will be added here.
+
+## Phase 2 suggestions
+ 
+Phase 1 stops at correct business rules, consistent data and basic security. Directions for Phase 2 (all measured before and after on the same Kaggle CPU configuration):
+ 
+| Direction | Suggestion |
+| --- | --- |
+| Concurrency | Verify race conditions with load tests: confirm and cancel the same order at the same time, many orders using one voucher, parallel logins. Add optimistic locking (`@Version`) on `orders`; consider a queue or distributed lock when running several instances |
+| Performance | Measure before optimizing: indexes for `orders(user_id, created_at)` and `orders(status, created_at)`, keyword search (`LIKE '%kw%'` cannot use an index), HikariCP pool size, virtual threads, cache for menu and categories, and removing the per-request user query in `JwtAuthFilter` |
+| Architecture | Keep a modular monolith; split into services (identity, menu, order) only if load test numbers show it is needed. Scale out with several app instances behind Nginx (JWT is already stateless) and Redis as a shared cache |
+| Source code | Apply State (order status) and Factory (order creation: validate items, snapshot prices, apply voucher, compute totals); split voucher rules into separate validator objects as rules grow |
+| API protection | Rate limiting and DoS protection, especially for `POST /api/auth/login` (BCrypt is CPU-heavy) and `POST /api/auth/register` |
+| Security | HTTPS in real deployment; shorter access token plus refresh token so access can be revoked; `AuditorAwareImpl` should record the real user instead of `SYSTEM` |
+| Observability | Spring Boot Actuator + Prometheus metrics, MySQL slow query log, to explain where latency comes from |
+| Migration | Replace the one-time `01-schema.sql` init script with versioned migrations (Flyway) so the schema can be upgraded without dropping the volume |
