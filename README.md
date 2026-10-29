@@ -45,7 +45,7 @@ total    = subtotal − discount + tax
 | Database | MySQL 8.4, Hibernate |
 | Xác thực | JWT (JJWT 0.12.6, HS256), BCrypt |
 | Khác | MapStruct, Lombok, springdoc-openapi (Swagger) |
-| Đóng gói / kiểm thử tải | Maven, Docker Compose, Kaggle CPU |
+| Đóng gói / CI / kiểm thử tải | Maven, Docker Compose, GitHub Actions, Locust trên Kaggle CPU |
 
 ## 3. API
 
@@ -104,32 +104,92 @@ Request → JwtAuthFilter → Controller → Service → Repository → MySQL
 - **Repository**: Spring Data JPA.
 - **Dùng chung**: `GlobalExceptionHandler` chuẩn hóa lỗi, MapStruct chuyển entity ↔ DTO.
 
-## 6. Cách chạy
+## 6. Triển khai
 
-Yêu cầu: JDK 25, Docker (Compose v2).
+### 6.1. Thành phần khi chạy
+
+Hệ thống được đóng gói bằng Docker Compose ([`docker-compose.yml`](docker-compose.yml)) gồm 2 container:
+
+| Container | Image | Cổng | Ghi chú |
+| --- | --- | --- | --- |
+| `coffeeshop-app` | Build từ [`Dockerfile`](Dockerfile) | `8080` | Chỉ khởi động khi MySQL đã sẵn sàng (healthcheck) |
+| `coffeeshop-mysql` | `mysql:8.4` | `3307` (máy host) → `3306` | Dữ liệu lưu ở volume `db_data` |
+
+- **Dockerfile** build 2 giai đoạn: giai đoạn 1 dùng Maven + JDK 25 để build file jar, giai đoạn 2 chỉ chép file jar sang image JRE 25 Alpine nhỏ gọn, chạy bằng user không phải root, heap JVM 256–512 MB.
+- **Database**: lần đầu tạo volume, MySQL tự chạy [`01-schema.sql`](infrastructure/database/init/01-schema.sql) để tạo bảng và nạp dữ liệu mẫu (danh mục, món, voucher `WELCOME10`). Hibernate không tự sửa schema (`ddl-auto: none`).
+- **Tài khoản admin** được tạo tự động khi app khởi động, lấy từ `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
+- Trong Compose, app kết nối MySQL qua `db:3306`; cổng `3307` chỉ dùng để kết nối từ máy host (VD: DBeaver).
+
+### 6.2. Cấu hình môi trường
+
+Mọi cấu hình và bí mật đọc từ biến môi trường trong file `.env` (không commit lên git):
+
+| Biến | Ý nghĩa |
+| --- | --- |
+| `MYSQL_USERNAME`, `MYSQL_ROOT_PASSWORD`, `MYSQL_DATABASE`, `DB_PORT` | Thông tin kết nối MySQL |
+| `JWT_SECRET` | Khóa ký JWT, Base64, tối thiểu 256 bit (bắt buộc) |
+| `JWT_EXPIRATION_MS` | Thời hạn token, mặc định 24 giờ |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Tài khoản admin đầu tiên (bắt buộc) |
+| `TAX_RATE` | Thuế suất, VD `0.08`; mặc định `0` |
+
+### 6.3. Chạy bằng Docker Compose
+
+Yêu cầu: Docker (Compose v2).
 
 ```bash
 cp .env.example .env
-openssl rand -base64 32        # dán kết quả vào JWT_SECRET trong .env
+openssl rand -base64 32          # dán kết quả vào JWT_SECRET trong .env
 
-docker compose up -d --build   # chạy cả MySQL và app
+docker compose up -d --build     # build image và chạy MySQL + app
+docker compose ps                # kiểm tra trạng thái
+docker compose logs -f app       # xem log app
 ```
 
-Hoặc có thể chạy app bằng Maven (MySQL vẫn chạy trong Docker):
+Các thao tác thường dùng:
 
-```bash
-docker compose up -d db
-set -a; source .env; set +a
-./mvnw spring-boot:run
-```
+| Việc cần làm | Lệnh |
+| --- | --- |
+| Cập nhật code mới | `git pull && docker compose up -d --build app` |
+| Dừng hệ thống (giữ dữ liệu) | `docker compose down` |
+| Xóa dữ liệu, chạy lại schema (sau khi sửa `01-schema.sql`) | `docker compose down -v && docker compose up -d --build` |
+
+Sau khi chạy:
 
 - API: http://localhost:8080/api/menu-items
 - Swagger UI: http://localhost:8080/swagger-ui/index.html
-- Tài khoản admin: `ADMIN_EMAIL` / `ADMIN_PASSWORD` trong `.env`
-- Chạy test: `./mvnw test`
-- Kiểm thử tải: script Locust và notebook Kaggle trong thư mục [`loadtest/`](loadtest/)
 
-Nếu sửa `01-schema.sql`, cần tạo lại volume: `docker compose down -v && docker compose up -d db`.
+### 6.4. Chạy khi phát triển (Build và chạy bằng Maven)
+
+Yêu cầu thêm JDK 25. MySQL vẫn chạy trong Docker, app chạy trực tiếp trên máy:
+
+```bash
+docker compose up -d db
+set -a; source .env; set +a      # Spring không tự đọc .env
+./mvnw spring-boot:run
+./mvnw test                      # chạy test (cần MySQL đang chạy)
+```
+
+### 6.5. Triển khai trên Kaggle (để kiểm thử tải)
+
+Kaggle không hỗ trợ Docker, nên notebook [`kaggle_loadtest.ipynb`](loadtest/kaggle_loadtest.ipynb) triển khai trực tiếp trên máy Kaggle CPU:
+
+1. Clone source từ nhánh `dev`.
+2. Cài JDK 25 (Temurin) và MySQL qua `apt`, nạp `01-schema.sql`.
+3. Build jar (`./mvnw package`) và chạy app với JWT secret và mật khẩu admin sinh ngẫu nhiên cho mỗi phiên.
+4. Smoke test (xem menu, đăng ký, đăng nhập, đặt đơn), warm-up JVM, rồi chạy Locust.
+
+App và MySQL được ghim vào các nhân CPU riêng, Locust chạy ở nhân còn lại (`taskset`), để công cụ tạo tải không tranh CPU với hệ thống được đo.
+
+### 6.6. CI với GitHub Actions
+
+Workflow [`ci.yml`](.github/workflows/ci.yml) tự chạy khi push hoặc mở pull request vào `dev` và `main`:
+
+| Job | Các bước |
+| --- | --- |
+| `Build and test` | Khởi động MySQL 8.4 (service container), nạp `01-schema.sql`, cài JDK 25, sinh JWT secret tạm, chạy `./mvnw verify` (unit test + test khởi động Spring) |
+| `Build Docker image` | Chạy sau khi test qua; build image từ `Dockerfile` để chắc chắn đóng gói được (không push lên registry) |
+
+Pull request chỉ nên merge khi cả 2 job đều xanh. Kết quả xem ở tab **Actions** trên GitHub.
 
 ## 7. Kiểm thử tải
 
