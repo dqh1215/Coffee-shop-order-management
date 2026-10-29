@@ -1,8 +1,10 @@
-name: CI
+name: CI/CD
 
+# Pull requests into dev/main run tests and build the image; merging into main also publishes it.
+# Pushes to dev are not built separately, since the pull request already tests the same code.
 on:
   push:
-    branches: [dev, main]
+    branches: [main]
   pull_request:
     branches: [dev, main]
 
@@ -68,7 +70,7 @@ jobs:
 
       - uses: docker/setup-buildx-action@v3
 
-      # Pull requests only build the image; pushes to dev/main also publish it to GHCR
+      # Pull requests only build the image; pushes to main also publish it to GHCR
       - name: Log in to GHCR
         if: github.event_name == 'push'
         uses: docker/login-action@v3
@@ -77,13 +79,23 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # main on push, pr-<number> on pull requests, plus the commit SHA
+      - name: Image tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/dqh1215/coffee-shop-order-management
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,format=long,prefix=
+
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
           context: .
           push: ${{ github.event_name == 'push' }}
-          tags: |
-            ghcr.io/dqh1215/coffee-shop-order-management:${{ github.ref_name }}
-            ghcr.io/dqh1215/coffee-shop-order-management:${{ github.sha }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
