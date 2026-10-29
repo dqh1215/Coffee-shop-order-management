@@ -1,0 +1,59 @@
+<mxfile host="app.diagrams.net">
+  <diagram id="arch" name="Architecture">
+    <mxGraphModel dx="1100" dy="650" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1000" pageHeight="560" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="client" value="&lt;b&gt;Client&lt;/b&gt;&lt;br&gt;Postman / Frontend" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="30" y="230" width="130" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="host" value="Docker Compose" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=none;strokeColor=#999999;verticalAlign=top;align=left;spacingLeft=10;fontStyle=2;" vertex="1" parent="1">
+          <mxGeometry x="210" y="20" width="760" height="520" as="geometry" />
+        </mxCell>
+
+        <mxCell id="app" value="Spring Boot monolith — app (:8080)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="240" y="50" width="470" height="470" as="geometry" />
+        </mxCell>
+
+        <mxCell id="filter" value="&lt;b&gt;Security&lt;/b&gt;&lt;br&gt;JwtAuthFilter · SecurityConfig" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="270" y="95" width="250" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="controller" value="&lt;b&gt;Controllers&lt;/b&gt;&lt;br&gt;Auth · User · Category · MenuItem · Order · Voucher" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="270" y="190" width="250" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="service" value="&lt;b&gt;Services&lt;/b&gt;&lt;br&gt;Business rules · ownership · OrderStatus&lt;br&gt;OrderPricing" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="270" y="290" width="250" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="repo" value="&lt;b&gt;Repositories&lt;/b&gt;&lt;br&gt;Spring Data JPA · Specifications" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="270" y="395" width="250" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cross" value="&lt;b&gt;Cross-cutting&lt;/b&gt;&lt;br&gt;&lt;br&gt;GlobalExceptionHandler&lt;br&gt;&lt;br&gt;MapStruct mappers&lt;br&gt;&lt;br&gt;BaseEntity&lt;br&gt;(audit, soft delete)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="550" y="190" width="135" height="265" as="geometry" />
+        </mxCell>
+
+        <mxCell id="db" value="&lt;b&gt;MySQL 8.4&lt;/b&gt;&lt;br&gt;db · coffeeshop&lt;br&gt;:3307 → 3306" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;size=15;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="770" y="380" width="160" height="110" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e1" value="HTTP / JSON&lt;br&gt;Bearer JWT" style="endArrow=classic;html=1;" edge="1" parent="1" source="client" target="filter">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" style="endArrow=classic;html=1;" edge="1" parent="1" source="filter" target="controller">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" style="endArrow=classic;html=1;" edge="1" parent="1" source="controller" target="service">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" style="endArrow=classic;html=1;" edge="1" parent="1" source="service" target="repo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" value="JDBC" style="endArrow=classic;html=1;" edge="1" parent="1" source="repo" target="db">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
