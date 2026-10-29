@@ -44,6 +44,7 @@ public class SecurityConfig {
                         .accessDeniedHandler(accessDeniedHandler))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/categories/**", "/api/menu-items/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/menu-items").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/menu-items/**").hasRole("ADMIN")

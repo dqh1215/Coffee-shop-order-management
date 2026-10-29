@@ -1,6 +1,7 @@
 package com.architecture_solution.coffeeshop_order_management.dto.voucher.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,17 +13,20 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 public class CreateVoucherRequest {
+    @Schema(example = "SUMMER20")
     @NotBlank(message = "Code is required")
     @Size(max = 30, message = "Code must be at most 30 characters")
     @Pattern(regexp = "^[A-Za-z0-9_-]+$", message = "Code only allows letters, digits, '-' and '_'")
     private String code;
 
+    @Schema(example = "20")
     @NotNull(message = "Discount percent is required")
     @Min(value = 1, message = "Discount percent must be at least 1")
     @Max(value = 100, message = "Discount percent must be at most 100")
     @JsonProperty("discount_percent")
     private Integer discountPercent;
 
+    @Schema(description = "Không gửi nghĩa là không hết hạn", example = "2030-12-31T23:59:59")
     @Future(message = "Expiry time must be in the future")
     @JsonProperty("expired_at")
     private LocalDateTime expiredAt;

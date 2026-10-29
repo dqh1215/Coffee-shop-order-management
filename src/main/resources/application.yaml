@@ -11,6 +11,12 @@ app:
     email: ${ADMIN_EMAIL}
     password: ${ADMIN_PASSWORD}
 
+springdoc:
+  default-produces-media-type: application/json
+  swagger-ui:
+    tags-sorter: alpha
+    operations-sorter: method
+
 spring:
   application:
     name: coffeeshop-order-management
