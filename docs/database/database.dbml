@@ -1,0 +1,88 @@
+Table users {
+  id char(36) [pk]
+  email varchar(100) [not null, unique]
+  phone_number varchar(20)
+  password_hash varchar(255) [not null]
+  full_name varchar(100)
+  role varchar(20) [not null, default: 'CUSTOMER', note: 'CUSTOMER | ADMIN']
+  created_at datetime [not null]
+  created_by varchar(100) [not null]
+  last_modified_at datetime
+  last_modified_by varchar(100)
+  is_active boolean [not null, default: true]
+}
+
+Table categories {
+  id char(36) [pk]
+  name varchar(100) [not null, unique]
+  created_at datetime [not null]
+  created_by varchar(100) [not null]
+  last_modified_at datetime
+  last_modified_by varchar(100)
+  is_active boolean [not null, default: true]
+}
+
+Table menu_items {
+  id char(36) [pk]
+  category_id char(36)
+  name varchar(150) [not null]
+  description varchar(500)
+  price decimal(10,2) [not null]
+  available boolean [not null, default: true]
+  created_at datetime [not null]
+  created_by varchar(100) [not null]
+  last_modified_at datetime
+  last_modified_by varchar(100)
+  is_active boolean [not null, default: true]
+}
+
+Table vouchers {
+  id char(36) [pk]
+  code varchar(30) [not null, unique]
+  discount_percent int [not null, note: '1-100']
+  expired_at datetime
+  created_at datetime [not null]
+  created_by varchar(100) [not null]
+  last_modified_at datetime
+  last_modified_by varchar(100)
+  is_active boolean [not null, default: true]
+}
+
+Table orders {
+  id char(36) [pk]
+  user_id char(36) [not null]
+  voucher_id char(36)
+  status varchar(20) [not null, default: 'PENDING', note: 'PENDING | CONFIRMED | CANCELLED']
+  subtotal decimal(10,2) [not null, default: 0]
+  discount_amount decimal(10,2) [not null, default: 0]
+  tax_amount decimal(10,2) [not null, default: 0]
+  total_amount decimal(10,2) [not null, default: 0]
+  note varchar(255)
+  cancel_reason varchar(255)
+  created_at datetime [not null]
+  created_by varchar(100) [not null]
+  last_modified_at datetime
+  last_modified_by varchar(100)
+  is_active boolean [not null, default: true]
+}
+
+Table order_items {
+  id char(36) [pk]
+  order_id char(36) [not null]
+  menu_item_id char(36) [not null]
+  item_name varchar(150) [not null, note: 'snapshot at order time']
+  unit_price decimal(10,2) [not null, note: 'snapshot at order time']
+  quantity int [not null]
+  line_total decimal(10,2) [not null]
+  created_at datetime [not null]
+  created_by varchar(100) [not null]
+  last_modified_at datetime
+  last_modified_by varchar(100)
+  is_active boolean [not null, default: true]
+}
+
+Ref: menu_items.category_id > categories.id
+Ref: orders.user_id > users.id
+Ref: orders.voucher_id > vouchers.id
+Ref: order_items.order_id > orders.id
+Ref: order_items.menu_item_id > menu_items.id
