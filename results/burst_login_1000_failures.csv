@@ -1,0 +1,2 @@
+Method,Name,Error,Occurrences,First Seen,Last Seen
+POST,POST /api/auth/login,HTTPError('500 Server Error:  for url: POST /api/auth/login'),28,2026-10-29T16:27:01Z,2026-10-29T16:27:11Z
